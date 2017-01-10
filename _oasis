@@ -1,0 +1,72 @@
+# -*- conf -*-
+OASISFormat:   0.4
+Name:          scriptengine
+Version:       0.0.1
+Synopsis:      OCaml interface to a Java ScriptEngine
+Authors:       Edgar Aroutiounian <edgar.factorial@gmail.com>
+Maintainers:   Edgar Aroutiounian <edgar.factorial@gmail.com>
+Homepage:      https://github.com/fxfactorial/scriptengine
+License:       BSD-3-clause
+OCamlVersion:  >= 4.04.0
+AlphaFeatures: ocamlbuild_more_args
+Plugins:       META (0.4), DevFiles (0.4)
+BuildTools:    ocamlbuild, ocamldoc
+Description:
+  Use a Java ScriptEngine from OCaml,
+  specialized to JavaScript.
+
+Library scriptengine
+  Path: lib
+  Modules: ScriptEngine
+  install: true
+  if system(macosx)
+    CCOpt:
+      -g -std=c++14 -x c++ -stdlib=libc++
+      # -D$(DEBUGGING) -Wextra
+      -I/Library/Java/JavaVirtualMachines/jdk1.8.0_112.jdk/Contents/Home/include
+      -I/Library/Java/JavaVirtualMachines/jdk1.8.0_112.jdk/Contents/Home/include/darwin
+      -I/usr/local/include/jni
+      -fno-omit-frame-pointer
+      -fsanitize-undefined-trap-on-error
+      -fno-optimize-sibling-calls
+    CClib:
+      -lc++
+      -rpath /Library/Java/JavaVirtualMachines/jdk1.8.0_112.jdk/Contents/Home/jre/lib/server
+      -L/Library/Java/JavaVirtualMachines/jdk1.8.0_112.jdk/Contents/Home/jre/lib/server
+      -ljvm
+  else
+    CCOpt:
+      # -I/usr/include/webkitgtk-4.0 -std=c++14 -O2 -x c++
+    CClib:
+      # -ljavascriptcoregtk-4.0 -lstdc++
+  NativeOpt: -g -w +a-4-40..42-44-45-48
+  ByteOpt: -g -w +a-4-40..42-44-45-48
+  CSources: scriptengine_jni_stubs.c
+  BuildDepends: unix
+
+Executable opt_test
+  Path: examples
+  BuildTools:ocamlbuild
+  install: false
+  MainIs: opt.ml
+  CompiledObject: native
+  NativeOpt: -g -w +a-4-40..42-44-45-48
+  ByteOpt: -g -w +a-4-40..42-44-45-48
+  BuildDepends: scriptengine
+
+SourceRepository master
+  Type:     git
+  Location: https://github.com/fxfactorial/ocaml-java-scriptengine.git
+  Browser:  https://github.com/fxfactorial/ocaml-java-scriptengine
+
+Document api
+  Title:              Documentation and API reference for ScriptEngine
+  Type:               ocamlbuild (0.4)
+  BuildTools+:        ocamldoc
+  InstallDir:         $htmldir/scriptengine
+  PostCommand:        cp docs/style.css api.docdir && cp api.docdir/* docs
+  XOCamlbuildPath:    docs
+  XOCamlbuildModules: src/ScriptEngine
+  Install:            true
+  XOCamlbuildExtraArgs:
+    "-docflags '-colorize-code -charset utf-8 -hide Closure -hide Pervasives'"
