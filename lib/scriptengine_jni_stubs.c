@@ -13,12 +13,16 @@
 
 using namespace std::literals::string_literals;
 
+#define Jvm_tag(t) (JavaVM*)Field(t, 0)
+#define JNI_env_tag(t) (JNIEnv*)Field(t, 0)
+
 extern "C" {
 
   CAMLprim value
   scriptengine_ml_init_jvm(value jvm_parameters)
   {
     CAMLparam0();
+    std::cout << "Called init jvm\n";
     CAMLlocal3(environment_tuple, jvm_wrapper, env_wrapper);
 
     JavaVMOption options[1];
@@ -32,8 +36,10 @@ extern "C" {
     env_wrapper = caml_alloc(sizeof(JNIEnv*), Abstract_tag);
 
     const char *option_string =
-      (std::string("-Djava.class.path=") +
+      ("-Djava.class.path="s +
        std::string(String_val(jvm_parameters))).c_str();
+
+    // std::cout << option_string << "\n";
 
     options[0].optionString = (char*)option_string;
 
@@ -43,8 +49,19 @@ extern "C" {
     vm_args.nOptions = 1;
     vm_args.options = options;
 
+    std::cout << "Before create java VM\n";
+
+    long status = JNI_CreateJavaVM(&jvm, (void**)&env, &vm_args);
+
+    std::cout << "status: " << status << "\n";
+
+    Store_field(jvm_wrapper, 0, (value)jvm);
+    Store_field(env_wrapper, 0, (value)env);
+
     Store_field(environment_tuple, 0, jvm_wrapper);
     Store_field(environment_tuple, 1, env_wrapper);
+
+    std::cout << "Returning\n";
 
     CAMLreturn(environment_tuple);
   }
@@ -53,20 +70,44 @@ extern "C" {
   scriptengine_ml_destroy_jvm(value jvm)
   {
     CAMLparam1(jvm);
+    std::cout << "Called destory jvm\n";
+    // auto jvm_ptr = Jvm_tag(jvm);
+    // jvm_ptr->Destroy();
     CAMLreturn(Val_unit);
   }
 
   CAMLprim value
-  scriptengine_ml_init_js_engine(value __attribute__((unused)))
+  scriptengine_ml_init_js_engine(value jni_env)
   {
-    CAMLparam0();
-    CAMLreturn(Val_unit);
+    CAMLparam1(jni_env);
+    CAMLlocal1(engine_wrapper);
+
+    std::cout << "Called init js engine\n";
+    JNIEnv *env = JNI_env_tag(jni_env);
+    jclass manager_class = env->FindClass("javax/script/ScriptEngineManager");
+    jmethodID manager_constructor = env->GetMethodID(manager_class, "<init>", "()V");
+
+    jobject manager_instance = env->NewObject(manager_class, manager_constructor);
+    jmethodID get_engine_by_extension =
+      env->GetMethodID(manager_class,
+		       "getEngineByExtension",
+		       "(Ljava/lang/String;)Ljavax/script/ScriptEngine");
+
+    jobject scriptengine = env->CallObjectMethod(manager_instance,
+						 get_engine_by_extension,
+						 env->NewStringUTF("javascript"));
+
+    engine_wrapper = caml_alloc(sizeof(jobject), Abstract_tag);
+    Store_field(engine_wrapper, 0, (value)scriptengine);
+    CAMLreturn(engine_wrapper);
   }
 
   CAMLprim value
   scriptengine_ml_destroy_js_engine(value scriptengine)
   {
     CAMLparam1(scriptengine);
+    std::cout << "Called destory js engine\n";
+
     CAMLreturn(Val_unit);
   }
 
@@ -74,6 +115,8 @@ extern "C" {
   scriptengine_ml_eval_js(value jvm, value script_engine, value js_string)
   {
     CAMLparam3(jvm, script_engine, js_string);
+    std::cout << "Called eval js\n";
+
     CAMLreturn(Val_unit);
   }
 
