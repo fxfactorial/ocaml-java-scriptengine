@@ -20,9 +20,9 @@ using namespace std::literals::string_literals;
 extern "C" {
 
   CAMLprim value
-  scriptengine_ml_init_jvm(value jvm_parameters)
+  scriptengine_ml_init_jvm(value jni_version, value jvm_parameters)
   {
-    CAMLparam1(jvm_parameters);
+    CAMLparam2(jni_version, jvm_parameters);
     CAMLlocal3(environment_tuple, jvm_wrapper, env_wrapper);
 
     JavaVMOption options[1];
@@ -43,7 +43,19 @@ extern "C" {
 
     memset(&vm_args, 0, sizeof(vm_args));
 
-    vm_args.version = JNI_VERSION_1_8;
+    vm_args.version = ([&](void){
+	std::cout << Int_val(jni_version) << "\n";
+	switch (Int_val(jni_version)) {
+	case 0: return JNI_VERSION_1_1;
+	case 1: return JNI_VERSION_1_2;
+	case 2: return JNI_VERSION_1_4;
+	case 3: return JNI_VERSION_1_6;
+	case 4:
+	default:
+	  return JNI_VERSION_1_8;
+	}
+      })();
+
     vm_args.nOptions = 1;
     vm_args.options = options;
 

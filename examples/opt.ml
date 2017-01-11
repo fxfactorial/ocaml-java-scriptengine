@@ -11,7 +11,9 @@ do_speak('hello world');
   in
 
   let f () =
-    let engine = new ScriptEngine.javascript_engine in
+    let engine =
+      new ScriptEngine.javascript_engine ~jni_version:ScriptEngine.JavaCode.One_8
+    in
     let result = engine#eval js_code in
     print_endline result
   in
