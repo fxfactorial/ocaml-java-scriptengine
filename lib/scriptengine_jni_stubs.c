@@ -39,8 +39,6 @@ extern "C" {
       ("-Djava.class.path="s +
        std::string(String_val(jvm_parameters))).c_str();
 
-    // std::cout << option_string << "\n";
-
     options[0].optionString = (char*)option_string;
 
     memset(&vm_args, 0, sizeof(vm_args));
@@ -64,7 +62,7 @@ extern "C" {
   scriptengine_ml_destroy_jvm(value jvm)
   {
     CAMLparam1(jvm);
-    std::cout << "Called destory jvm\n";
+    // std::cout << "Called destory jvm\n";
     // auto jvm_ptr = Jvm_tag(jvm);
     // jvm_ptr->Destroy();
     CAMLreturn(Val_unit);

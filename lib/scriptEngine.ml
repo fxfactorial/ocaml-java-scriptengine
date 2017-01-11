@@ -11,7 +11,6 @@ module JavaCode = struct
 
   type class_path = Class_path of bytes
 
-  (* Starting a JVM is surprisingly expensive, at least to me. *)
   external init : string -> t = "scriptengine_ml_init_jvm"
   external destroy_jvm : jvm -> unit = "scriptengine_ml_destroy_jvm"
 

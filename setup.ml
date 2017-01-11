@@ -36,4 +36,23 @@ open OASISDynRun;;
 let setup_t = BaseCompat.Compat_0_4.adapt_setup_t setup_t
 open BaseCompat.Compat_0_4
 (* OASIS_STOP *)
+
+let exhaust ic =
+  let all_input = ref [] in
+  (try while true do all_input := input_line ic :: !all_input; done
+   with End_of_file -> ());
+  Unix.close_process_in ic |> ignore;
+  List.rev !all_input
+
+let read_process_output p = Unix.open_process_in p |> exhaust
+
+let _ =
+  BaseEnv.var_define
+    "JAVA_HOME"
+    (fun () ->
+       Sys.command "javac JavaHome.java" |> ignore;
+       let java_home = read_process_output "java JavaHome" |> String.concat "\n" in
+       Filename.chop_suffix java_home "jre")
+    ()
+
 let () = setup ();;
