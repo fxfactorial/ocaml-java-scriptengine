@@ -27,7 +27,6 @@ Library scriptengine
       -I/Library/Java/JavaVirtualMachines/jdk1.8.0_112.jdk/Contents/Home/include/darwin
       -I/usr/local/include/jni
       -fno-omit-frame-pointer
-      # -fsanitize=address
       -fsanitize-undefined-trap-on-error
       -fno-optimize-sibling-calls
     CClib:
@@ -42,8 +41,6 @@ Library scriptengine
       # -ljavascriptcoregtk-4.0 -lstdc++
   NativeOpt:
     -g -w +a-4-40..42-44-45-48
-    # -cclib -fsanitize=address -ccopt -fsanitize=address
-
   ByteOpt: -g -w +a-4-40..42-44-45-48
   CSources: scriptengine_jni_stubs.c
   BuildDepends: unix

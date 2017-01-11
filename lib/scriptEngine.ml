@@ -21,7 +21,8 @@ module JavaCode = struct
   external destroy_js_scriptengine :
     js_scriptengine -> unit = "scriptengine_ml_destroy_js_engine"
 
-  external eval_js : js_scriptengine -> bytes -> bytes = "scriptengine_ml_eval_js"
+  external eval_js :
+    jni_env -> js_scriptengine -> bytes -> bytes = "scriptengine_ml_eval_js"
 
 end
 
@@ -35,8 +36,8 @@ class java_environment =
     method unsafe_jvm_ptr = jvm
     method unsafe_jni_env_ptr = jni_env
 
-    (* initializer Gc.finalise JavaCode.destroy_jvm jvm *)
-end
+    initializer Gc.finalise JavaCode.destroy_jvm jvm
+  end
 
 (** Creates a JavaScript evaluator, note creates a JVM, which can be
     slow *)
@@ -44,10 +45,10 @@ class javascript_engine =
   let java_env = new java_environment in
   object
 
-  (* val script_engine = JavaCode.init_js_scriptengine java_env#unsafe_jni_env_ptr *)
+    val script_engine = JavaCode.init_js_scriptengine java_env#unsafe_jni_env_ptr
 
-  (* initializer Gc.finalise JavaCode.destroy_js_scriptengine script_engine *)
+    initializer Gc.finalise JavaCode.destroy_js_scriptengine script_engine
 
-  (* method eval (JavaScript src) = JavaCode.eval_js script_engine src *)
+    method eval (JavaScript src) = JavaCode.eval_js java_env#unsafe_jni_env_ptr script_engine src
 
-end
+  end
