@@ -62,9 +62,8 @@ extern "C" {
   scriptengine_ml_destroy_jvm(value jvm)
   {
     CAMLparam1(jvm);
-    // std::cout << "Called destory jvm\n";
-    // auto jvm_ptr = Jvm_tag(jvm);
-    // jvm_ptr->Destroy();
+    auto *jvm_ptr = Jvm_tag(jvm);
+    jvm_ptr->DestroyJavaVM();
     CAMLreturn(Val_unit);
   }
 
@@ -91,17 +90,19 @@ extern "C" {
     						 get_engine_by_name,
     						 env->NewStringUTF("javascript"));
 
+    env->DeleteLocalRef(manager_instance);
     engine_wrapper = caml_alloc(sizeof(jobject), Abstract_tag);
-    Store_field(engine_wrapper, 0, (value)scriptengine);
+    Store_field(engine_wrapper, 0, (value)(env->NewGlobalRef(scriptengine)));
     CAMLreturn(engine_wrapper);
   }
 
   CAMLprim value
-  scriptengine_ml_destroy_js_engine(value scriptengine)
+  scriptengine_ml_destroy_js_engine(value env_ml, value scriptengine_ml)
   {
-    CAMLparam1(scriptengine);
-    // std::cout << "Called destory js engine\n";
-
+    CAMLparam2(env_ml, scriptengine_ml);
+    auto *env = JNI_env_tag(env_ml);
+    auto *scriptengine = Scriptengine_tag(scriptengine_ml);
+    env->DeleteGlobalRef(scriptengine);
     CAMLreturn(Val_unit);
   }
 
