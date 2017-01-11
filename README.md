@@ -8,6 +8,8 @@ These are OCaml bindings to
 Evaluate `JavaScript` code in OCaml by letting Java do all the hard
 work :) 
 
+Note: You'll need to have a `JDK` installed and a `java`, `javac`
+accessible on your path in order for this to properly install.
 
 Here's some example code: 
 
