@@ -1,0 +1,34 @@
+# -*- conf -*-
+opam-version: "1.2"
+name: "scriptengine"
+version: "0.0.1"
+maintainer: "Edgar Aroutiounian <edgar.factorial@gmail.com>"
+authors: [ "Edgar Aroutiounian <edgar.factorial@gmail.com>" ]
+license: "BSD-3-clause"
+homepage: "https://github.com/fxfactorial/ocaml-java-scriptengine"
+dev-repo: "https://github.com/fxfactorial/ocaml-java-scriptengine.git"
+bug-reports: "https://github.com/fxfactorial/ocaml-java-scriptengine/issues"
+tags: [ "clib:stdc" "clib:jvm" "clib:c"  ]
+build: [
+  ["oasis" "setup"]
+  ["ocaml" "setup.ml" "-configure" "--prefix" prefix]
+  ["ocaml" "setup.ml" "-build"]
+]
+install: ["ocaml" "setup.ml" "-install"]
+remove: [
+  ["ocamlfind" "remove" "scriptengine"]
+]
+build-test: [
+  ["oasis" "setup"]
+  ["ocaml" "setup.ml" "-configure" "--enable-tests"]
+  ["ocaml" "setup.ml" "-build"]
+  ["ocaml" "setup.ml" "-test"]
+]
+build-doc: [ "ocaml" "setup.ml" "-doc" ]
+depends: [
+  "base-unix" {build}
+  "oasis" {build & >= "0.4.7"}
+  "ocamlbuild" {build}
+  "ocamlfind" {build}
+]
+available: [ ocaml-version >= "4.04.0" ]

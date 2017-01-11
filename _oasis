@@ -19,6 +19,7 @@ Library scriptengine
   Path: lib
   Modules: ScriptEngine
   install: true
+  # OS X is basically a DEBUG build
   if system(macosx)
     CCOpt:
       -g -std=c++14 -x c++ -stdlib=libc++
@@ -34,11 +35,16 @@ Library scriptengine
       -ljvm
   else
     CCOpt:
-      # -I/usr/include/webkitgtk-4.0 -std=c++14 -O2 -x c++
+      -std=c++14 -x c++ -stdlib=stdc++
+      -I$(JAVA_HOME)include
+      -I$(JAVA_HOME)include/linux
+      -O2
     CClib:
-      # -ljavascriptcoregtk-4.0 -lstdc++
-  NativeOpt:
-    -g -w +a-4-40..42-44-45-48
+      -lstdc++
+      -rpath $(JAVA_HOME)jre/lib/server
+      -L$(JAVA_HOME)jre/lib/server
+      -ljvm
+  NativeOpt: -g -w +a-4-40..42-44-45-48
   ByteOpt: -g -w +a-4-40..42-44-45-48
   CSources: scriptengine_jni_stubs.c
 
