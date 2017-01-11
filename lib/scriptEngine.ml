@@ -25,28 +25,27 @@ module JavaCode = struct
 
 end
 
-let class_path = ref ".:./"
-
-class java_environment ~jni_version =
-  let (jvm, jni_env) = JavaCode.init jni_version !class_path in
+class java_environment ?(class_path=".:./") jni_version =
   object
-    val jvm = jvm
-    val jni_env = jni_env
-    method unsafe_jvm_ptr = jvm
-    method unsafe_jni_env_ptr = jni_env
+    val pair = JavaCode.init jni_version class_path
+    method unsafe_jvm_ptr = fst pair
+    method unsafe_jni_env_ptr = snd pair
 
-    initializer Gc.finalise JavaCode.destroy_jvm jvm
+    initializer Gc.finalise (fun (jvm, env) ->
+        JavaCode.destroy_jvm jvm;
+      ) pair
+
   end
 
 (** Creates a JavaScript evaluator, note creates a JVM, which can be
     slow *)
-class javascript_engine ~jni_version =
-  let java_env = new java_environment ~jni_version in
+class javascript_engine ?(java_env=new java_environment JavaCode.One_8) () =
   object
-
-    val script_engine = JavaCode.init_js_scriptengine java_env#unsafe_jni_env_ptr
+    val script_engine =
+      JavaCode.init_js_scriptengine java_env#unsafe_jni_env_ptr
 
     initializer
+
       Gc.finalise
         (JavaCode.destroy_js_scriptengine java_env#unsafe_jni_env_ptr)
         script_engine

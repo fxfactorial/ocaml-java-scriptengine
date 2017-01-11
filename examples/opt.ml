@@ -12,7 +12,7 @@ do_speak('hello world');
 
   let f () =
     let engine =
-      new ScriptEngine.javascript_engine ~jni_version:ScriptEngine.JavaCode.One_8
+      new ScriptEngine.javascript_engine ()
     in
     let result = engine#eval js_code in
     print_endline result
@@ -20,3 +20,22 @@ do_speak('hello world');
   f ();
   Gc.major ();
   Printf.printf "Finished at %f\n" (Unix.time ())
+
+let exhaust ic =
+  let all_input = ref [] in
+  (try while true do all_input := input_line ic :: !all_input; done
+   with End_of_file -> ());
+  close_in ic |> ignore;
+  List.rev !all_input
+
+let () =
+  let js_code =
+    open_in "./examples/js_code1.js"
+    |> exhaust
+    |> String.concat "\n"
+  in
+  let engine =
+    new ScriptEngine.javascript_engine ()
+  in
+  engine#eval (ScriptEngine.JavaScript js_code)
+  |> print_endline

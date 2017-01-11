@@ -17,6 +17,13 @@ using namespace std::literals::string_literals;
 #define JNI_env_tag(t) (JNIEnv*)Field(t, 0)
 #define Scriptengine_tag(t) (jobject)Field(t, 0)
 
+#define DEBUG(s)				\
+  std::cout << "\033[1;33m["			\
+  << ""						\
+  << "]\036" << " \033[1;36m["			\
+  <<  __PRETTY_FUNCTION__ << "]\033[0m: "	\
+  << s << "\n"
+
 extern "C" {
 
   CAMLprim value
@@ -24,7 +31,7 @@ extern "C" {
   {
     CAMLparam2(jni_version, jvm_parameters);
     CAMLlocal3(environment_tuple, jvm_wrapper, env_wrapper);
-
+    DEBUG("");
     JavaVMOption options[1];
     JNIEnv *env = nullptr;
     JavaVM *jvm = nullptr;
@@ -44,7 +51,6 @@ extern "C" {
     memset(&vm_args, 0, sizeof(vm_args));
 
     vm_args.version = ([&](void){
-	std::cout << Int_val(jni_version) << "\n";
 	switch (Int_val(jni_version)) {
 	case 0: return JNI_VERSION_1_1;
 	case 1: return JNI_VERSION_1_2;
@@ -74,6 +80,7 @@ extern "C" {
   scriptengine_ml_destroy_jvm(value jvm)
   {
     CAMLparam1(jvm);
+    DEBUG("");
     auto *jvm_ptr = Jvm_tag(jvm);
     jvm_ptr->DestroyJavaVM();
     CAMLreturn(Val_unit);
@@ -86,7 +93,13 @@ extern "C" {
     CAMLlocal1(engine_wrapper);
 
     JNIEnv *env = JNI_env_tag(jni_env);
+    if (env == nullptr) {
+      std::cout << "ENV IS NULL!??\n";
+    }
+    DEBUG("2");
+
     jclass manager_class = env->FindClass("javax/script/ScriptEngineManager");
+    DEBUG("3");
 
     jmethodID manager_constructor = env->GetMethodID(manager_class, "<init>", "()V");
 
@@ -112,6 +125,7 @@ extern "C" {
   scriptengine_ml_destroy_js_engine(value env_ml, value scriptengine_ml)
   {
     CAMLparam2(env_ml, scriptengine_ml);
+
     auto *env = JNI_env_tag(env_ml);
     auto *scriptengine = Scriptengine_tag(scriptengine_ml);
     env->DeleteGlobalRef(scriptengine);
@@ -124,7 +138,6 @@ extern "C" {
     CAMLparam3(jni_env, script_engine, js_string);
     jobject script_engine_instance = Scriptengine_tag(script_engine);
     JNIEnv *env = JNI_env_tag(jni_env);
-
     jclass engine_class = env->FindClass("javax/script/ScriptEngine");
     // Gives some kind of intermediate result type
     jmethodID eval =
